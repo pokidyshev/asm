@@ -1,6 +1,11 @@
 ; This a small assembly program which calculates whether 
 ; a fist sequence of positive numbers in an array is the longest
 
+; Assembling, linking and executing, respectively:
+; nasm -felf64 helloworld.asm
+; ld helloworld.o -o helloworld
+; ./helloworld
+
 %define NEW_LINE 10
 
 segment .data
@@ -8,7 +13,7 @@ positive db "YES!", NEW_LINE
 negative db "NO!", NEW_LINE
 array    dd  1, 2, 3, 4, -1, 2, 2, 0, -1, 1
 
-global _start                       ; the program entry point
+global _start                           ; the program entry point
 
 _start:
 	mov eax, 0 ; i=0
@@ -17,11 +22,11 @@ _start:
 	mov     rdx, 8                  ; number of bytes
 	
 print_loop:
-	mov     rsi, [array+eax]           ; address of item to output
+	mov     rsi, [array+eax]        ; address of item to output
 	syscall                         ; invoke operating system to do the write
-	add eax, 8 ; ++i (8 bytes)
-	cmp eax, 8*10 ; if (i < 10)
-	jne print_loop ; jump until i = 10 
+	add eax, 8                      ; ++i (8 bytes)
+	cmp eax, 8*10                   ; if (i < 10)
+	jne print_loop                  ; jump until i = 10 
 	
 	
 	mov     eax, 60                 ; system call 60 is exit
