@@ -4,3 +4,5 @@
 !*.asm
 # Except .gitignore
 !.gitignore 
+# Except Makefile
+!Makefile
