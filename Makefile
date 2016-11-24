@@ -1,7 +1,10 @@
-all: hello.out
+all: array
 
-hello.out: hello.asm
-	nasm -f elf64 -o hello.o hello.asm
-	ld -o hello hello.o
-	./hello > hello.out
-	cat hello.out
+array: array.asm
+	nasm -f elf64 -o array.o array.asm
+	ld -o array array.o
+	./array
+
+clean:
+	rm -f *.o
+	rm array
