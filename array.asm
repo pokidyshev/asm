@@ -1,8 +1,8 @@
-;
-; This a small assembly program which calculates whether
-; a fist sequence of positive numbers in an array is the
-; longest
-;
+;;
+;; This a small assembly program which calculates whether
+;; a fist sequence of positive numbers in an array is the
+;; longest
+;;
 
 %include "io.inc"
 
@@ -15,48 +15,64 @@ section .data
 
 section .text
     global main
+    global fist_pos_longest
 
 main:
 	push  rbp		; set up stack frame
-	push  rdi
 	push  rsi
 	push  rdx
-	push  rax
-	push  rbx
 	
 	mov   rsi, ARRAY
-	mov   rbx, 0
 	mov   rdx, ARRAY_SIZE
+	call first_pos_longest
 
-	call  count_pos
-	mov   rdi, rax
-
-next_subseq:
-	call  count_pos
-
-	cmp   rax, rdi
-	jg    no
-
-	cmp   rax, 0 
-	je    yes
-
-	jmp   next_subseq
-
-yes:
-	println_literal "yes"
-	jmp   restore_registers
-no: 
-	println_literal "no"
-restore_registers:
-	pop   rbx
-	pop   rax
 	pop   rdx
 	pop   rsi
-	pop   rdi	
 	pop	  rbp		; restore stack
 
     jmp   exit
 
+
+;;
+;; say 'yes' if a fist sequence of positive numbers 
+;; in an array is the longest
+;; params:
+;;   rsi = pointer to the array
+;;   rdx = array length
+;;   
+first_pos_longest:
+	push  rbx
+	push  rdi
+	push  rax
+	
+	mov   rbx, 0             ; i = 0
+
+	call  count_pos          ; count first sequence length
+	mov   rdi, rax			 ; store it in rdi
+
+next_subseq:                 ; check other sequences
+	call  count_pos
+
+	cmp   rax, rdi           ; if there is a sequence with greater length
+	jg    no                 ; print 'no'
+
+	cmp   rax, 0             ; if end of array reached
+	je    yes                ; print 'yes'
+
+	jmp   next_subseq        ; continue checking
+
+yes:
+	println_literal "yes"
+	jmp   first_pos_ret
+no: 
+	println_literal "no"
+
+first_pos_ret:
+	pop   rax
+	pop   rdi	
+	pop   rbx
+
+	ret
 
 
 ;;
