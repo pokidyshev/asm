@@ -1,8 +1,0 @@
-# Ignore everything
-*
-# Except .asm
-!*.asm
-# Except .gitignore
-!.gitignore 
-# Except Makefile
-!Makefile
