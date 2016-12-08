@@ -1,10 +1,20 @@
-all: array
+AS = nasm
+ASFLAGS = -f elf64
+CFLAGS =
+CC = gcc
 
-array: array.asm
-	nasm -f elf64 -o array.o array.asm
-	ld -o array array.o
-	./array
+all: array io.o
 
-clean:
-	rm -f *.o
+array: array.o io.o
+	$(CC) $(CFLAGS) -o array array.o io.o
+
+array.o : io.inc array.asm
+	$(AS) $(ASFLAGS) array.asm
+
+io.o : io.asm
+	$(AS) $(ASFLAGS) io.asm
+
+
+clear:
+	rm *.o
 	rm array
