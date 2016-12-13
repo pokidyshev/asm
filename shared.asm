@@ -1,19 +1,5 @@
-%macro multipush 1-* 
-%rep %0 
-    push %1 
-%rotate 1 
-%endrep 
-%endmacro
-
-%macro multipop 1-* 
-%rep %0 
-%rotate -1 
-    pop %1 
-%endrep 
-%endmacro
-
 section .data
-    SYS_WRITE equ 1
+    SYS_WRITE equ 4
     STD_OUT   equ 1
 
     SYS_READ  equ 3
@@ -21,38 +7,43 @@ section .data
 
 
 segment .text
-    global sys_read, sys_write, strlen
+    global sys_read, sys_write
     global solve
 
 
 ;;
-;; say 'yes' if a fist sequence of positive numbers 
+;; Check if a fist sequence of positive numbers 
 ;; in an array is the longest
-;; params:
-;;   rsi = pointer to the array
-;;   rdx = array length
-;;   
+;; Params:
+;;   esi = pointer to the array
+;;   edx = array length
+;; Returns:
+;;   eax = 0 if yes
+;;
 solve:
-    multipush rbx, rdi
+    push  ebx
+    push  edi
 
-    mov   rbx, 0             ; i = 0
+    mov   ebx, 0             ; i = 0
     call  count_pos          ; count first sequence length
-    mov   rdi, rax           ; store it in rdi
-.next:                     ; check other sequences
+    mov   edi, eax           ; store it in edi
+.next:                       ; check other sequences
     call  count_pos
 
-    cmp   rax, rdi           ; if there is a sequence with greater length
-    jg    .no                ;   print 'no'
-    cmp   rax, 0             ; if end of array reached
-    je    .yes               ;   print 'yes'
+    cmp   eax, edi           ; if there is a sequence with greater length
+    jg    .no                ;   answer - 'no'
+    cmp   eax, 0             ; if end of array reached
+    je    .yes               ;   answer - 'yes'
     jmp   .next              ; continue checking
 .yes:
-    mov   rax, 0
+    mov   eax, 0
     jmp   .end
 .no:
-    mov   rax, 1 
+    mov   eax, 1 
 .end:
-    multipop rbx, rdi
+    pop   edi
+    pop   ebx
+
     ret
 
 
@@ -60,61 +51,61 @@ solve:
 ;;
 ;; count number of positive numbers
 ;; params:
-;;   rsi = pointer to the array
-;;   rbx = start index
-;;   rdx = array length
+;;   esi = pointer to the array
+;;   ebx = start index
+;;   edx = array length
 ;; ret:
-;;   rax = length of the next positive subsequence
+;;   eax = length of the next positive subsequence
 ;;         0 if end of array reached
 ;;
 count_pos:
-    xor   rax, rax           ; counter = 0
+    xor   eax, eax           ; counter = 0
 
-    cmp   rbx, rdx           ; if (i >= len)
+    cmp   ebx, edx           ; if (i >= len)
     jge   .end               ;   return
     
 .skip_neg:               
-    cmp   qword [rsi], 0     ; while (i != a.length && a[i] <= 0) {
+    cmp   dword [esi], 0     ; while (i != a.length && a[i] <= 0) {
     jg    .next_pos
 
-    add   rsi, 8             ; go to tho next element in the array
-    inc   rbx                ; i++
+    add   esi, 4             ; go to tho next element in the array
+    inc   ebx                ; i++
     
-    cmp   rbx, rdx
+    cmp   ebx, edx
     je    .end               ; i != a.length
     
     jmp   .skip_neg          ; }
       
 .next_pos:                   ; do {
-    inc   rax                ;   counter++
-    add   rsi, 8             ;   go to tho next element in the array
-    inc   rbx                ;   i++
+    inc   eax                ;   counter++
+    add   esi, 4             ;   go to tho next element in the array
+    inc   ebx                ;   i++
     
-    cmp   rbx, rdx           ;   if (i == len) 
+    cmp   ebx, edx           ;   if (i == len) 
     je    .end               ;     return
       
-    cmp   qword [rsi], 0
+    cmp   dword [esi], 0
     jg    .next_pos          ; } while (a[i] > 0)
 
 .end:
     ret
 
-  ;;
-  ;; Read string from standard input
-  ;; Params:
-  ;;   rcx = char buffer
-  ;;   rdx = buffer length
-  ;; Returns:
-  ;;   rax = length of the read string
-  ;;
+;;
+;; Read string from standard input
+;; Params:
+;;   ecx = char buffer
+;;   edx = buffer length
+;; Returns:
+;;   eax = length of the read string
+;;
 sys_read:
-    push rbx
+    push ebx
 
-    mov rbx, STD_IN
-    mov rax, SYS_READ
-    int 80H
+    mov  eax, SYS_READ
+    mov  ebx, STD_IN
+    int  0x80
 
-    pop rbx
+    pop  ebx
     
     ret
 
@@ -122,42 +113,18 @@ sys_read:
 ;;
 ;; write string to standard output
 ;; params:
-;;   rsi = pointer to the string
-;;   rdx = length of the string
+;;   ecx = pointer to the string
+;;   edx = length of the string
 ;;
 sys_write:
-    multipush rax, rdi
+    push eax
+    push ebx
 
-    mov   rax, SYS_WRITE  ; use sys_write()
-    mov   rdi, STD_OUT    ; we're writing to stdout
-    syscall
+    mov  eax, SYS_WRITE  ; use sys_write()
+    mov  ebx, STD_OUT    ; we're writing to stdout
+    int  0x80
 
-    multipop rax, rdi
+    pop ebx
+    pop eax
     
     ret
-
-
-;;
-;; calculate length of string
-;; params:
-;;   rdi = pointer to the string
-;; returns:
-;;   rax = length of string
-;;
-strlen:
-    push  rcx            ; save and clear out counter
-    xor   rcx, rcx
-
-.next:
-    cmp   [rdi], byte 0  ; null byte yet?
-    jz    .zero          ; yes, get out
-
-    inc   rcx            ; char is ok, count it
-    inc   rdi            ; move to next char
-    jmp   .next          ; process again
-
-.zero:
-    mov   rax, rcx       ; rcx = the length (put in rax)
-
-    pop   rcx            ; restore rcx
-    ret                  ; get out
