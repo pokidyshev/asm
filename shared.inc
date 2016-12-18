@@ -59,6 +59,6 @@ extern  solve
 
 %macro writeln_literal 1
     szn %%literal, %1
-    %%len equ $ - %%literal
+    %%len equ $-%%literal
     write %%literal, %%len
 %endmacro

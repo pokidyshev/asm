@@ -22,4 +22,4 @@ shared.o : shared.asm
 
 clear:
 	rm *.o
-	rm array, array2
+	rm array array2
