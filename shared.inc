@@ -1,5 +1,5 @@
 ; include my I/O functions
-extern  sys_write, sys_read
+extern  sys_write, sys_read, atoi, itoa
 ; include solver
 extern  solve
 
@@ -40,9 +40,11 @@ extern  solve
 ;;   2 = length of the string
 ;;
 %macro write 2
+    multipush ecx, edx
     mov   ecx, %1       ; load the address of the string to sys_write()
     mov   edx, %2       ; load the length of the string to sys_write()
     call  sys_write     ; print the string
+    multipop ecx, edx
 %endmacro
 
 ;;
@@ -50,11 +52,16 @@ extern  solve
 ;; params
 ;;   1 = pointer to the buffer
 ;;   2 = length of the buffer
+;; returns
+;;   ecx = pointer to the string
+;;   eax = length
 ;;
 %macro read 2
+    push edx
     mov   ecx, %1       ; load the address of the string to sys_read()
     mov   edx, %2       ; load the length of the string to sys_read()
     call  sys_read      ; read a string
+    pop edx
 %endmacro
 
 %macro writeln_literal 1
